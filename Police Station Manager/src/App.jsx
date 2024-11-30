@@ -1,22 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Header from './Header/Header'
-import Sidebar from './Sidebar/Sidebar'
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import './App.css';
+import Header from './Header/Header';
+import Sidebar from './Sidebar/Sidebar';
+import PoliceManager from './PoliceManager/PoliceManager';
 
 function App() {
   return (
-    <div className='body'>
-    <Header></Header>
-    <div className="content">
-            <Sidebar></Sidebar>
-            <div className='main-content'>
-              
-            </div>
+    <Router>
+      <div className='body'>
+        <Header />
+        <div className="content">
+          <Sidebar />
+          <div className='main-content'>
+            <Routes>
+              <Route path="/police-officer" element={<PoliceManager />} />
+              {/* Add other routes here */}
+            </Routes>
           </div>
-    </div>
-  )
+        </div>
+      </div>
+    </Router>
+  );
 }
 
-export default App
+export default App;

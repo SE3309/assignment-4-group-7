@@ -1,12 +1,18 @@
+import express from 'express';
 import mysql from 'mysql2';
+import cors from 'cors';
 
+const app = express();
+const port = 3000;
 
+// Enable CORS
+app.use(cors());
 
 // Create a connection to the database
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '',
+  password: 'Laylabhalla!724',
   database: '3309',
 });
 
@@ -17,17 +23,22 @@ connection.connect((err) => {
     return;
   }
   console.log('Connected as id ' + connection.threadId);
+});
 
-  // Test query to verify connection
-  const query = 'SELECT 1 + 1 AS solution';
-  connection.query(query, (err, results, fields) => {
+// Endpoint to fetch all police officers
+app.get('/api/policeofficers', (req, res) => {
+  const query = 'SELECT * FROM policeofficer';
+  connection.query(query, (err, results) => {
     if (err) {
       console.error('Query error: ', err);
+      res.status(500).json({ error: 'Failed to fetch police officers' });
       return;
     }
-    console.log('Test query result: ', results[0].solution); // Should output: 2
+    res.json(results);
   });
+});
 
-  // Close the connection
-  connection.end();
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
