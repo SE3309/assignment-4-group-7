@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+#Ignoer .env files containing credentials, API keys, etc
+.env
