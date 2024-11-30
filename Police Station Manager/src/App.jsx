@@ -6,14 +6,13 @@ import Header from './Header/Header'
 import Sidebar from './Sidebar/Sidebar'
 
 function App() {
- 
-
   return (
-    <div>
+    <div className='body'>
     <Header></Header>
     <div className="content">
             <Sidebar></Sidebar>
             <div className='main-content'>
+              
             </div>
           </div>
     </div>

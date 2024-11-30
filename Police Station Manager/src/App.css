@@ -12,6 +12,7 @@ html,body,#root{
 }
 
 .content {
+  height: 100%;
   display: flex;
   height: calc(100% - 120px);
   overflow: hidden;
