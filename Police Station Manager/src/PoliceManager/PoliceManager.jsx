@@ -7,9 +7,8 @@ function PoliceManager() {
 
   useEffect(() => {
     // Fetch police officers from the database
-    fetch('/api/policeofficers')
+    fetch('http://localhost:3000/api/policeofficers')
       .then(response => {
-        console.log('Response:', response);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
