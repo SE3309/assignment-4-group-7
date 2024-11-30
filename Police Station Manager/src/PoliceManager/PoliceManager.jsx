@@ -3,13 +3,17 @@ import './PoliceManager.css';
 
 function PoliceManager() {
   const [officers, setOfficers] = useState([]);
-  const [stations, setStations] = useState([]);
+  const [stationLocations, setStationLocations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOfficer, setSelectedOfficer] = useState(null);
   const [resultsPerPage, setResultsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [station, setStation] = useState('');
+  const [dateOfHire, setDateOfHire] = useState('');
+  const [badgeNumber, setBadgeNumber] = useState('');
+  const [sortField, setSortField] = useState('stationLocation');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [groupedByYear, setGroupedByYear] = useState([]);
 
   useEffect(() => {
     // Fetch police officers
@@ -17,9 +21,23 @@ function PoliceManager() {
     if (station) {
       url.searchParams.append('station', station);
     }
-    if (sortOrder) {
-      url.searchParams.append('sort', sortOrder);
+    if (dateOfHire) {
+      url.searchParams.append('dateOfHire', dateOfHire);
     }
+    if (badgeNumber) {
+      url.searchParams.append('badgeNumber', badgeNumber);
+    }
+    if (sortField) {
+      url.searchParams.append('sortField', sortField);
+    }
+    if (sortOrder) {
+      url.searchParams.append('sortOrder', sortOrder);
+    }
+    if (searchTerm) {
+      url.searchParams.append('searchTerm', searchTerm);
+    }
+    url.searchParams.append('page', currentPage);
+    url.searchParams.append('limit', resultsPerPage);
 
     fetch(url)
       .then(response => {
@@ -30,19 +48,19 @@ function PoliceManager() {
       })
       .then(data => setOfficers(data))
       .catch(error => console.error('Error fetching police officers:', error));
-  }, [station, sortOrder]);
+  }, [station, dateOfHire, badgeNumber, sortField, sortOrder, searchTerm, currentPage, resultsPerPage]);
 
   useEffect(() => {
-    // Fetch station names
-    fetch('http://localhost:3000/api/stations')
+    // Fetch station locations
+    fetch('http://localhost:3000/api/policeofficers/location')
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         return response.json();
       })
-      .then(data => setStations(data))
-      .catch(error => console.error('Error fetching stations:', error));
+      .then(data => setStationLocations(data))
+      .catch(error => console.error('Error fetching station locations:', error));
   }, []);
 
   const handleSearch = (event) => {
@@ -72,13 +90,41 @@ function PoliceManager() {
     setCurrentPage(1); // Reset to first page on station change
   };
 
+  const handleDateOfHireChange = (event) => {
+    setDateOfHire(event.target.value);
+    setCurrentPage(1); // Reset to first page on date of hire change
+  };
+
+  const handleBadgeNumberChange = (event) => {
+    setBadgeNumber(event.target.value);
+    setCurrentPage(1); // Reset to first page on badge number change
+  };
+
+  const handleSortFieldChange = (event) => {
+    setSortField(event.target.value);
+  };
+
   const handleSortOrderChange = (event) => {
     setSortOrder(event.target.value);
   };
 
+  const handleFetchGroupedByYear = () => {
+    fetch('http://localhost:3000/api/policeofficers?groupByYear=true')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => setGroupedByYear(data))
+      .catch(error => console.error('Error fetching grouped officers by year:', error));
+  };
+
   const filteredOfficers = officers.filter(officer =>
     officer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (!station || officer.stationLocation === station)
+    (!station || officer.stationLocation === station) &&
+    (!dateOfHire || officer.dateOfHire === dateOfHire) &&
+    (!badgeNumber || officer.badgeNumber === badgeNumber)
   );
 
   const startIndex = (currentPage - 1) * resultsPerPage;
@@ -98,13 +144,33 @@ function PoliceManager() {
         <label htmlFor="stationFilter">Filter by station:</label>
         <select id="stationFilter" value={station} onChange={handleStationChange}>
           <option value="">All Stations</option>
-          {stations.map(station => (
-            <option key={station.location} value={station.location}>{station.location}</option>
+          {stationLocations.map(location => (
+            <option key={location.stationLocation} value={location.stationLocation}>{location.stationLocation}</option>
           ))}
         </select>
+        <label htmlFor="dateOfHireFilter">Filter by date of hire:</label>
+        <input
+          type="date"
+          id="dateOfHireFilter"
+          value={dateOfHire}
+          onChange={handleDateOfHireChange}
+        />
+        <label htmlFor="badgeNumberFilter">Filter by badge number:</label>
+        <input
+          type="text"
+          id="badgeNumberFilter"
+          value={badgeNumber}
+          onChange={handleBadgeNumberChange}
+        />
       </div>
       <div className="sort-container">
-        <label htmlFor="sortOrder">Sort by station location:</label>
+        <label htmlFor="sortField">Sort by:</label>
+        <select id="sortField" value={sortField} onChange={handleSortFieldChange}>
+          <option value="stationLocation">Station Location</option>
+          <option value="fullName">Full Name</option>
+          <option value="dateOfHire">Date of Hire</option>
+        </select>
+        <label htmlFor="sortOrder">Order:</label>
         <select id="sortOrder" value={sortOrder} onChange={handleSortOrderChange}>
           <option value="asc">Ascending</option>
           <option value="desc">Descending</option>
@@ -125,6 +191,19 @@ function PoliceManager() {
           <button onClick={handleNextPage} disabled={endIndex >= filteredOfficers.length}>Next</button>
         </div>
       </div>
+      <button onClick={handleFetchGroupedByYear}>Fetch Officers Grouped by Year of Hire</button>
+      {groupedByYear.length > 0 && (
+        <div className="grouped-by-year">
+          <h3>Officers Grouped by Year of Hire</h3>
+          <ul>
+            {groupedByYear.map((group, index) => (
+              <li key={index}>
+                <span>{group.hireYear}: {group.officerCount} officers</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {paginatedOfficers.length > 0 ? (
         <ul className="officer-list">
           {paginatedOfficers.map(officer => (
@@ -135,7 +214,7 @@ function PoliceManager() {
           ))}
         </ul>
       ) : (
-        <p>No officers found for the selected station.</p>
+        <p>No officers found for the selected criteria.</p>
       )}
       {selectedOfficer && (
         <div className="modal-overlay">
