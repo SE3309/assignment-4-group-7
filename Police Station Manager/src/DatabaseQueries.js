@@ -12,7 +12,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: '3309'
+  database: '3309',
 });
 
 connection.connect(err => {
@@ -42,6 +42,44 @@ app.get('/api/policeofficers', (req, res) => {
     if (err) {
       console.error('Query error: ', err);
       res.status(500).json({ error: 'Failed to fetch police officers' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// Endpoint to fetch all policeStations 
+app.get('/api/policestation', (req, res) => {
+  const query = 'SELECT * FROM policestation';
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Query error: ', err);
+      res.status(500).json({ error: 'Failed to fetch police station' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// Endpoint to fetch police station with most officers
+app.get('/api/policestation/mostOfficers', (req, res) => {
+  const query = `SELECT 
+    PS.stationName, 
+    PS.location, 
+    COUNT(PO.badgeNumber) AS officerCount
+    FROM 
+    policeStation PS
+    JOIN 
+    policeOfficer PO ON PS.location = PO.stationLocation
+    GROUP BY 
+    PS.stationName, PS.location
+    ORDER BY 
+    officerCount DESC
+    LIMIT 1;`;
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Query error: ', err);
+      res.status(500).json({ error: 'Failed to fetch officers in police station' });
       return;
     }
     res.json(results);

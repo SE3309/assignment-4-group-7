@@ -1,0 +1,26 @@
+.info-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    text-align: center;
+}
+
+.button {
+    margin-top: 20px;
+    background-color: #007BFF; /* Blue background */
+    border: 1px solid #007BFF; /* Border matching the background */
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding for better click area */
+    text-align: center; /* Center text */
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* Align as inline element */
+    font-size: 14px; /* Smaller text */
+    border-radius: 5px; /* Slightly rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth background transition */
+  }
+  
+  /* Hover Effect */
+  .button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+  }

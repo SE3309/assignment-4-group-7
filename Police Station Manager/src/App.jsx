@@ -4,6 +4,7 @@ import './App.css';
 import Header from './Header/Header';
 import Sidebar from './Sidebar/Sidebar';
 import PoliceManager from './PoliceManager/PoliceManager';
+import PoliceStation from './PoliceStation/PoliceStation';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <div className='main-content'>
             <Routes>
               <Route path="/police-officer" element={<PoliceManager />} />
+              <Route path="/police-station" element={<PoliceStation/>} />
               {/* Add other routes here */}
             </Routes>
           </div>
