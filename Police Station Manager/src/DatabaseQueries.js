@@ -12,7 +12,7 @@ app.use(cors());
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'Laylabhalla!724',
+  password: '',
   database: '3309',
 });
 
@@ -32,6 +32,19 @@ app.get('/api/policeofficers', (req, res) => {
     if (err) {
       console.error('Query error: ', err);
       res.status(500).json({ error: 'Failed to fetch police officers' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/suspects', (req, res) => {
+  const query = 'SELECT suspect.suspectID, suspect.fullName, suspect.dateOfBirth, COUNT(suspect_incident.incidentNumber) AS incidentCount FROM suspect JOIN suspect_incident ON suspect.suspectID = suspect_incident.suspectID GROUP BY suspect.suspectID, suspect.fullName, suspect.dateOfBirth ORDER BY incidentCount DESC;'
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Query error: ', err);
+      res.status(500).json({ error: 'Failed to fetch suspects' });
       return;
     }
     res.json(results);
