@@ -6,6 +6,8 @@ function Sidebar() {
   return (
     <div className="sidebar">
       <Link to="/police-officer" className="option">Police Officer</Link>
+      
+      <Link to="/suspect" className="option">Suspect</Link>
       <Link to="/police-station" className="option">Police Station</Link>
     
       <div className="option">Suspect</div>

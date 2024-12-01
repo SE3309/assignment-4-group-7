@@ -137,6 +137,19 @@ app.get('/api/policestation/mostOfficers', (req, res) => {
   });
 });
 
+app.get('/api/suspects', (req, res) => {
+  const query = 'SELECT suspect.suspectID, suspect.fullName, suspect.dateOfBirth, COUNT(suspect_incident.incidentNumber) AS incidentCount FROM suspect JOIN suspect_incident ON suspect.suspectID = suspect_incident.suspectID GROUP BY suspect.suspectID, suspect.fullName, suspect.dateOfBirth ORDER BY incidentCount DESC;'
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Query error: ', err);
+      res.status(500).json({ error: 'Failed to fetch suspects' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

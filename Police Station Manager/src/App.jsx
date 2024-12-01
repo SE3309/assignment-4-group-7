@@ -5,6 +5,7 @@ import Header from './Header/Header';
 import Sidebar from './Sidebar/Sidebar';
 import PoliceManager from './PoliceManager/PoliceManager';
 import PoliceStation from './PoliceStation/PoliceStation';
+import Suspect from './Suspect/Suspect';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Routes>
               <Route path="/police-officer" element={<PoliceManager />} />
               <Route path="/police-station" element={<PoliceStation/>} />
+              <Route path="/suspect" element={<Suspect />}/>
               {/* Add other routes here */}
             </Routes>
           </div>
