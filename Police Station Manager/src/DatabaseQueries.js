@@ -25,7 +25,7 @@ connection.connect(err => {
 
 // Endpoint to fetch police officers with multiple filters, sorting, pagination, and grouping by year of hire
 app.get('/api/policeofficers', (req, res) => {
-  const { station, dateOfHire, badgeNumber, sortField, sortOrder, searchTerm, page, limit, groupByYear } = req.query;
+  const { station, dateOfHire, badgeNumber, sortField, sortOrder, searchTerm, page, limit, groupByYear, hireYear } = req.query;
   let query = 'SELECT * FROM policeofficer';
   const queryParams = [];
 
@@ -46,6 +46,10 @@ app.get('/api/policeofficers', (req, res) => {
     conditions.push('fullName LIKE ?');
     queryParams.push(`%${searchTerm}%`);
   }
+  if (hireYear) {
+    conditions.push('YEAR(dateOfHire) = ?');
+    queryParams.push(hireYear);
+  }
 
   if (conditions.length > 0) {
     query += ' WHERE ' + conditions.join(' AND ');
@@ -65,10 +69,12 @@ app.get('/api/policeofficers', (req, res) => {
         hireYear ASC
     `;
   } else {
-    if (sortField && (sortOrder === 'asc' || sortOrder === 'desc')) {
+    if (sortField === 'hireYear') {
+      query += ` ORDER BY YEAR(dateOfHire) ${sortOrder.toUpperCase()}`;
+    } else if (sortField && (sortOrder === 'asc' || sortOrder === 'desc')) {
       query += ` ORDER BY ${sortField} ${sortOrder.toUpperCase()}`;
     }
-
+  
     if (page && limit) {
       const offset = (page - 1) * limit;
       query += ` LIMIT ? OFFSET ?`;
@@ -76,10 +82,26 @@ app.get('/api/policeofficers', (req, res) => {
     }
   }
 
+  //console.log('Executing query:', query); // Debugging information
+  //console.log('With parameters:', queryParams); // Debugging information
+
   connection.query(query, queryParams, (err, results) => {
     if (err) {
       console.error('Query error: ', err);
       res.status(500).json({ error: 'Failed to fetch police officers' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// Endpoint to fetch distinct hire years
+app.get('/api/policeofficers/hireyears', (req, res) => {
+  const query = 'SELECT DISTINCT YEAR(dateOfHire) AS hireYear FROM policeofficer ORDER BY hireYear ASC';
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Query error: ', err);
+      res.status(500).json({ error: 'Failed to fetch hire years' });
       return;
     }
     res.json(results);
