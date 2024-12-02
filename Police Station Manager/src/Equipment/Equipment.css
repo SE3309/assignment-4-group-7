@@ -1,0 +1,55 @@
+/* Equipment.css */
+.equipment-page {
+  padding: 20px;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px; 
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.equipment-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px; 
+}
+
+.equipment-card {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.equipment-card h3 {
+  margin-bottom: 10px;
+}
+
+.equipment-card p {
+  margin: 5px 0;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0; 
+}
+
+.pagination-controls button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}

@@ -11,7 +11,7 @@ app.use(cors());
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'Laylabhalla!724',
+  password: '@Somaliaisgood231',
   database: '3309'
 });
 
@@ -175,4 +175,57 @@ app.get('/api/suspects', (req, res) => {
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+});
+
+app.get("/api/equipment", (req, res) => {
+  const { searchTerm, page = 1, limit = 10, status, type } = req.query;
+  const offset = (page - 1) * limit;
+
+  let query = `SELECT * FROM policeEquipment WHERE 1=1`;
+  const queryParams = [];
+
+  if (searchTerm) {
+    query += ` AND equipmentName LIKE ?`;
+    queryParams.push(`%${searchTerm}%`);
+  }
+  if (status) {
+    query += ` AND equipmentStatus = ?`;
+    queryParams.push(status);
+  }
+  if (type) {
+    query += ` AND equipmentType = ?`;
+    queryParams.push(type);
+  }
+
+  query += ` LIMIT ? OFFSET ?`;
+  queryParams.push(parseInt(limit), parseInt(offset));
+
+  connection.query(query, queryParams, (err, results) => {
+    if (err) {
+      console.error("Database query failed:", err);
+      return res.status(500).json({ error: "Failed to fetch equipment data" });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get("/api/equipment/types", (req, res) => {
+  const query = `SELECT DISTINCT equipmentType FROM policeEquipment`;
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: "Database query failed" });
+    }
+    res.json(results.map((row) => row.equipmentType));
+  });
+});
+
+app.get("/api/equipment/statuses", (req, res) => {
+  const query = `SELECT DISTINCT equipmentStatus FROM policeEquipment`;
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: "Database query failed" });
+    }
+    res.json(results.map((row) => row.equipmentStatus));
+  });
 });
