@@ -11,7 +11,7 @@ function Sidebar() {
       <Link to="/police-station" className="option">Police Station</Link>
       <div className="option">Incident</div>
       <Link to="/equipment" className="option">Equipment</Link>
-      <div className="option">Warrant</div>
+      <Link to="/warrant" className="option">Warrant</Link>
     </div>
   );
 }

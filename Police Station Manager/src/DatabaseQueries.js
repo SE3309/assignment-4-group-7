@@ -8,10 +8,12 @@ const port = 3000;
 // Enable CORS
 app.use(cors());
 
+
+
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '@Somaliaisgood231',
+  password: 'Laylabhalla!724',
   database: '3309'
 });
 
@@ -81,9 +83,6 @@ app.get('/api/policeofficers', (req, res) => {
       queryParams.push(parseInt(limit), parseInt(offset));
     }
   }
-
-  //console.log('Executing query:', query); // Debugging information
-  //console.log('With parameters:', queryParams); // Debugging information
 
   connection.query(query, queryParams, (err, results) => {
     if (err) {
@@ -172,10 +171,96 @@ app.get('/api/suspects', (req, res) => {
   });
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+// Endpoint to fetch warrants with multiple filters, sorting, and pagination
+app.get('/api/warrants', (req, res) => {
+  const { 
+    warrantID, 
+    issuedDate, 
+    expirationDate, 
+    warrantStatus, 
+    suspectName, 
+    suspectDOB, 
+    sortField, 
+    sortOrder, 
+    searchTerm, 
+    page = 1, 
+    limit = 10 
+  } = req.query;
+
+  let query = 'SELECT * FROM warrant';
+  const queryParams = [];
+  const conditions = [];
+
+  if (warrantID) {
+    conditions.push('warrantID = ?');
+    queryParams.push(warrantID);
+  }
+  if (issuedDate) {
+    conditions.push('issuedDate = ?');
+    queryParams.push(issuedDate);
+  }
+  if (expirationDate) {
+    conditions.push('expirationDate = ?');
+    queryParams.push(expirationDate);
+  }
+  if (warrantStatus) {
+    conditions.push('warrantStatus = ?');
+    queryParams.push(warrantStatus);
+  }
+  if (suspectName) {
+    conditions.push('suspectName LIKE ?');
+    queryParams.push(`%${suspectName}%`);
+  }
+  if (suspectDOB) {
+    conditions.push('suspectDOB = ?');
+    queryParams.push(suspectDOB);
+  }
+  if (searchTerm) {
+    conditions.push('(suspectName LIKE ? OR warrantStatus LIKE ?)');
+    queryParams.push(`%${searchTerm}%`, `%${searchTerm}%`);
+  }
+
+  if (conditions.length > 0) {
+    query += ' WHERE ' + conditions.join(' AND ');
+  }
+
+  if (sortField && (sortOrder === 'asc' || sortOrder === 'desc')) {
+    query += ` ORDER BY ${sortField} ${sortOrder.toUpperCase()}`;
+  }
+
+  const offset = (page - 1) * limit;
+  query += ` LIMIT ? OFFSET ?`;
+  queryParams.push(parseInt(limit), parseInt(offset));
+
+  connection.query(query, queryParams, (err, results) => {
+    if (err) {
+      console.error('Query error: ', err);
+      res.status(500).json({ error: 'Failed to fetch warrants' });
+      return;
+    }
+    res.json(results);
+  });
 });
+
+// Endpoint to fetch active warrants issued in the last 30 days
+app.get('/api/warrants/recent-active', (req, res) => {
+  const query = `
+    SELECT * FROM warrant
+    WHERE warrantStatus = 'active'
+    AND issuedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    ORDER BY issuedDate DESC
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Query error: ', err);
+      res.status(500).json({ error: 'Failed to fetch recent active warrants' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
 
 app.get("/api/equipment", (req, res) => {
   const { searchTerm, page = 1, limit = 10, status, type } = req.query;
@@ -209,10 +294,9 @@ app.get("/api/equipment", (req, res) => {
   });
 });
 
-
 app.get("/api/equipment/types", (req, res) => {
   const query = `SELECT DISTINCT equipmentType FROM policeEquipment`;
-  db.query(query, (err, results) => {
+  connection.query(query, (err, results) => {
     if (err) {
       return res.status(500).json({ error: "Database query failed" });
     }
@@ -222,10 +306,15 @@ app.get("/api/equipment/types", (req, res) => {
 
 app.get("/api/equipment/statuses", (req, res) => {
   const query = `SELECT DISTINCT equipmentStatus FROM policeEquipment`;
-  db.query(query, (err, results) => {
+  connection.query(query, (err, results) => {
     if (err) {
       return res.status(500).json({ error: "Database query failed" });
     }
     res.json(results.map((row) => row.equipmentStatus));
   });
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
