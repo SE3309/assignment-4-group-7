@@ -9,7 +9,7 @@ function Sidebar() {
       
       <Link to="/suspect" className="option">Suspect</Link>
       <Link to="/police-station" className="option">Police Station</Link>
-      <div className="option">Incident</div>
+      <Link to="/incident" className="option">Incident</Link>
       <Link to="/equipment" className="option">Equipment</Link>
       <Link to="/warrant" className="option">Warrant</Link>
     </div>

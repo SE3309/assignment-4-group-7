@@ -8,6 +8,7 @@ import PoliceStation from './PoliceStation/PoliceStation';
 import Suspect from './Suspect/Suspect';
 import Equipment from './Equipment/Equipment';
 import Warrant from './Warrant/Warrant';
+import Incident from './Incident/Incident';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
               <Route path="/suspect" element={<Suspect />}/>
               <Route path="/equipment" element={<Equipment />}/>
               <Route path="/warrant" element={<Warrant />}/>
+              <Route path="/incident" element={<Incident />}/>
             </Routes>
           </div>
         </div>
