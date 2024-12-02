@@ -8,12 +8,29 @@ const Incident = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [incidentStatuses, setIncidentStatuses] = useState([]);
+  const [incidentTypes, setIncidentTypes] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedType, setSelectedType] = useState("");
   const itemsPerPage = 5;
 
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/incidents");
+        const url = new URL("http://localhost:3000/api/incidents");
+        url.searchParams.append("page", currentPage);
+        url.searchParams.append("limit", itemsPerPage);
+        if (searchTerm) {
+          url.searchParams.append("searchTerm", searchTerm);
+        }
+        if (selectedStatus) {
+          url.searchParams.append("status", selectedStatus);
+        }
+        if (selectedType) {
+          url.searchParams.append("type", selectedType);
+        }
+
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -27,30 +44,60 @@ const Incident = () => {
     };
 
     fetchIncidents();
+  }, [searchTerm, currentPage, selectedStatus, selectedType]);
+
+  useEffect(() => {
+    const fetchIncidentStatuses = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/incidents/statuses");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setIncidentStatuses(data);
+      } catch (error) {
+        console.error("Failed to fetch incident statuses:", error);
+      }
+    };
+
+    const fetchIncidentTypes = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/incidents/types");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setIncidentTypes(data);
+      } catch (error) {
+        console.error("Failed to fetch incident types:", error);
+      }
+    };
+
+    fetchIncidentStatuses();
+    fetchIncidentTypes();
   }, []);
 
   const handleSearch = (e) => {
-    const search = e.target.value.toLowerCase();
-    setSearchTerm(search);
-    const filtered = incidentData.filter(
-      (item) =>
-        item.incidentType.toLowerCase().includes(search) ||
-        item.location.toLowerCase().includes(search)
-    );
-    setFilteredData(filtered);
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (e) => {
+    setSelectedStatus(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleTypeChange = (e) => {
+    setSelectedType(e.target.value);
     setCurrentPage(1);
   };
 
   const handleNextPage = () => {
-    if (currentPage * itemsPerPage < filteredData.length) {
-      setCurrentPage(currentPage + 1);
-    }
+    setCurrentPage((prevPage) => prevPage + 1);
   };
 
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+    setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
   };
 
   const paginatedData = filteredData.slice(
@@ -68,6 +115,24 @@ const Incident = () => {
         onChange={handleSearch}
         className="search-bar"
       />
+      <div className="filters">
+        <select value={selectedStatus} onChange={handleStatusChange}>
+          <option value="">All Statuses</option>
+          {incidentStatuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+        <select value={selectedType} onChange={handleTypeChange}>
+          <option value="">All Types</option>
+          {incidentTypes.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="pagination-controls">
         <button onClick={handlePreviousPage} disabled={currentPage === 1}>
           Previous

@@ -1,6 +1,9 @@
 import express from 'express';
 import mysql from 'mysql2';
 import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const port = 3000;
@@ -8,13 +11,11 @@ const port = 3000;
 // Enable CORS
 app.use(cors());
 
-
-
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '@Somaliaisgood231',
-  database: '3309'
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
 });
 
 connection.connect(err => {
@@ -261,6 +262,60 @@ app.get('/api/warrants/recent-active', (req, res) => {
   });
 });
 
+// Endpoint to fetch incidents with multiple filters, sorting, and pagination
+app.get("/api/incidents", (req, res) => {
+  const { searchTerm, page = 1, limit = 10, status, type } = req.query;
+  const offset = (page - 1) * limit;
+
+  let query = `SELECT * FROM Incident WHERE 1=1`;
+  const queryParams = [];
+
+  if (searchTerm) {
+    query += ` AND (incidentType LIKE ? OR location LIKE ?)`;
+    queryParams.push(`%${searchTerm}%`, `%${searchTerm}%`);
+  }
+  if (status) {
+    query += ` AND incidentStatus = ?`;
+    queryParams.push(status);
+  }
+  if (type) {
+    query += ` AND incidentType = ?`;
+    queryParams.push(type);
+  }
+
+  query += ` LIMIT ? OFFSET ?`;
+  queryParams.push(parseInt(limit), parseInt(offset));
+
+  connection.query(query, queryParams, (err, results) => {
+    if (err) {
+      console.error("Database query failed:", err);
+      return res.status(500).json({ error: "Failed to fetch incident data" });
+    }
+    res.json(results);
+  });
+});
+
+app.get("/api/incidents/statuses", (req, res) => {
+  const query = `SELECT DISTINCT incidentStatus FROM Incident`;
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database query failed:", err);
+      return res.status(500).json({ error: "Failed to fetch incident statuses" });
+    }
+    res.json(results.map((row) => row.incidentStatus));
+  });
+});
+
+app.get("/api/incidents/types", (req, res) => {
+  const query = `SELECT DISTINCT incidentType FROM Incident`;
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Database query failed:", err);
+      return res.status(500).json({ error: "Failed to fetch incident types" });
+    }
+    res.json(results.map((row) => row.incidentType));
+  });
+});
 
 app.get("/api/equipment", (req, res) => {
   const { searchTerm, page = 1, limit = 10, status, type } = req.query;
@@ -317,58 +372,4 @@ app.get("/api/equipment/statuses", (req, res) => {
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
-});
-
-app.get("/api/incidents", (req, res) => {
-  const { searchTerm, page = 1, limit = 10, status, type } = req.query;
-  const offset = (page - 1) * limit;
-
-  let query = `SELECT * FROM Incident WHERE 1=1`;
-  const queryParams = [];
-
-  if (searchTerm) {
-    query += ` AND (incidentType LIKE ? OR location LIKE ?)`;
-    queryParams.push(`%${searchTerm}%`, `%${searchTerm}%`);
-  }
-  if (status) {
-    query += ` AND incidentStatus = ?`;
-    queryParams.push(status);
-  }
-  if (type) {
-    query += ` AND incidentType = ?`;
-    queryParams.push(type);
-  }
-
-  query += ` LIMIT ? OFFSET ?`;
-  queryParams.push(parseInt(limit), parseInt(offset));
-
-  connection.query(query, queryParams, (err, results) => {
-    if (err) {
-      console.error("Database query failed:", err);
-      return res.status(500).json({ error: "Failed to fetch incident data" });
-    }
-    res.json(results);
-  });
-});
-
-app.get("/api/incidents/statuses", (req, res) => {
-  const query = `SELECT DISTINCT incidentStatus FROM Incident`;
-  connection.query(query, (err, results) => {
-    if (err) {
-      console.error("Database query failed:", err);
-      return res.status(500).json({ error: "Failed to fetch incident statuses" });
-    }
-    res.json(results.map((row) => row.incidentStatus));
-  });
-});
-
-app.get("/api/incidents/types", (req, res) => {
-  const query = `SELECT DISTINCT incidentType FROM Incident`;
-  connection.query(query, (err, results) => {
-    if (err) {
-      console.error("Database query failed:", err);
-      return res.status(500).json({ error: "Failed to fetch incident types" });
-    }
-    res.json(results.map((row) => row.incidentType));
-  });
 });
